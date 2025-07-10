@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23788.4" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Sneaker" representedClassName="Sneaker" syncable="YES">
+        <attribute name="brand" optional="YES" attributeType="String"/>
+        <attribute name="condition" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="currency" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="imageData" optional="YES" attributeType="Binary"/>
+        <attribute name="isWishlist" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="photoBack" optional="YES" attributeType="Binary"/>
+        <attribute name="photoBox" optional="YES" attributeType="Binary"/>
+        <attribute name="photoFront" optional="YES" attributeType="Binary"/>
+        <attribute name="photoInsole" optional="YES" attributeType="Binary"/>
+        <attribute name="photoSide" optional="YES" attributeType="Binary"/>
+        <attribute name="photoSole" optional="YES" attributeType="Binary"/>
+        <attribute name="price" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="size" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="sizeUnit" optional="YES" attributeType="String"/>
+        <attribute name="uuid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
+</model>
