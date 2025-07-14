@@ -1,10 +1,3 @@
-//
-//  ScannerView.swift
-//  Sneaker Inventory App
-//
-//  Created by Filipa Lopes de Carvalho on 11.07.25.
-//
-
 
 import SwiftUI
 import AVFoundation

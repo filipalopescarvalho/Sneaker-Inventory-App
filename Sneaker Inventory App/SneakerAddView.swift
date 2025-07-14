@@ -35,6 +35,8 @@ struct SneakerAddView: View {
     let currencies = ["USD", "GBP", "EUR"]
     let sizeUnits = ["US", "EU", "UK"]
     let isWishlist: Bool
+    var existingSneaker: Sneaker? = nil
+
 
     var body: some View {
         NavigationView {
@@ -46,8 +48,7 @@ struct SneakerAddView: View {
                     HStack {
                         Text("Size")
                         Spacer()
-                        TextField("Size", value: $size, formatter: NumberFormatter())
-                            .keyboardType(.decimalPad)
+                        TextField("Size", value: $size, format: .number)
                             .frame(width: 80)
                     }
 
@@ -193,22 +194,30 @@ struct SneakerAddView: View {
 
     private func saveSneaker() {
         print("Saving sneaker with isWishlist = \(self.isWishlist)")
-        let newSneaker = Sneaker(context: viewContext)
-        newSneaker.name = name
-        newSneaker.brand = brand
-        newSneaker.size = size
-        newSneaker.price = price
-        newSneaker.currency = currency
-        newSneaker.sizeUnit = sizeUnit
-        newSneaker.condition = Int16(condition)
-        newSneaker.isWishlist = self.isWishlist
+        
+        let sneakerToSave: Sneaker
+        if let existing = existingSneaker {
+            sneakerToSave = existing
+        } else {
+            sneakerToSave = Sneaker(context: viewContext)
+            sneakerToSave.id = UUID()
+        }
 
-        newSneaker.photoFront = photoFront?.jpegData(compressionQuality: 0.8)
-        newSneaker.photoBox = photoBox?.jpegData(compressionQuality: 0.8)
-        newSneaker.photoInsole = photoInsole?.jpegData(compressionQuality: 0.8)
-        newSneaker.photoSide = photoSide?.jpegData(compressionQuality: 0.8)
-        newSneaker.photoSole = photoSole?.jpegData(compressionQuality: 0.8)
-        newSneaker.photoBack = photoBack?.jpegData(compressionQuality: 0.8)
+        sneakerToSave.name = name
+        sneakerToSave.brand = brand
+        sneakerToSave.size = size
+        sneakerToSave.price = price
+        sneakerToSave.currency = currency
+        sneakerToSave.sizeUnit = sizeUnit
+        sneakerToSave.condition = Int16(condition)
+        sneakerToSave.isWishlist = isWishlist
+
+        sneakerToSave.photoFront = photoFront?.jpegData(compressionQuality: 0.8)
+        sneakerToSave.photoBox = photoBox?.jpegData(compressionQuality: 0.8)
+        sneakerToSave.photoInsole = photoInsole?.jpegData(compressionQuality: 0.8)
+        sneakerToSave.photoSide = photoSide?.jpegData(compressionQuality: 0.8)
+        sneakerToSave.photoSole = photoSole?.jpegData(compressionQuality: 0.8)
+        sneakerToSave.photoBack = photoBack?.jpegData(compressionQuality: 0.8)
 
         do {
             try viewContext.save()
@@ -217,4 +226,6 @@ struct SneakerAddView: View {
             print("Error saving sneaker: \(error)")
         }
     }
-}
+
+    }
+

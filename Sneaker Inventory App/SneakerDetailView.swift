@@ -11,7 +11,6 @@ struct SneakerDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // 3x2 photo grid
                 let validPhotos = PhotoType.allCases.compactMap { type -> (PhotoType, UIImage)? in
                     if let data = imageData(for: type), let image = UIImage(data: data) {
                         return (type, image)

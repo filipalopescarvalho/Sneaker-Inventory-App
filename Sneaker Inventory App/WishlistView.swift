@@ -13,75 +13,102 @@ struct WishlistView: View {
     @State private var showingAddWishlist = false
     @State private var selectedSneakerForEdit: Sneaker?
     @State private var selectedSneakerForDetail: Sneaker?
+    @State private var searchText: String = ""
 
     var body: some View {
         NavigationView {
-            List {
-                if wishlistSneakers.isEmpty {
-                    Button("Start adding your wishlist sneakers") {
-                        showingAddWishlist = true
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                } else {
-                    ForEach(wishlistSneakers) { sneaker in
-                        Button {
-                            selectedSneakerForDetail = sneaker
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(sneaker.name ?? "Unnamed")
-                                    .font(.headline)
-                                Text("Brand: \(sneaker.brand ?? "Unknown")")
-                                    .font(.subheadline)
+            VStack {
+                TextField("Search by name or brand", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding([.horizontal, .top])
 
-                                HStack(spacing: 16) {
-                                    Text("Size: \(sneaker.size, specifier: "%.1f") \(sneaker.sizeUnit ?? "")")
-                                    Text("Condition: \(sneaker.condition)/10")
-                                }
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-
-                                HStack(spacing: 16) {
-                                    Text("Price: \(sneaker.price, specifier: "%.2f") \(sneaker.currency ?? "")")
-                                }
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            }
-                            .padding(.vertical, 8)
+                List {
+                    if filteredSneakers().isEmpty {
+                        Button("Start adding your wishlist sneakers") {
+                            showingAddWishlist = true
                         }
-                        .buttonStyle(PlainButtonStyle())
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                deleteSneaker(sneaker)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        ForEach(filteredSneakers()) { sneaker in
+                            Button {
+                                selectedSneakerForDetail = sneaker
                             } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
+                                HStack(alignment: .top, spacing: 12) {
+                                    if let image = frontImage(for: sneaker) {
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 60, height: 60)
+                                            .clipped()
+                                            .cornerRadius(8)
+                                    } else {
+                                        Rectangle()
+                                            .fill(Color.gray.opacity(0.3))
+                                            .frame(width: 60, height: 60)
+                                            .cornerRadius(8)
+                                    }
 
-                            Button {
-                                moveToCollection(sneaker)
-                            } label: {
-                                Label("Move to Collection", systemImage: "folder.badge.plus")
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(sneaker.name ?? "Unnamed")
+                                            .font(.headline)
+                                        Text("Brand: \(sneaker.brand ?? "Unknown")")
+                                            .font(.subheadline)
+
+                                        HStack(spacing: 16) {
+                                            Text("Size: \(sneaker.size, specifier: "%.1f") \(sneaker.sizeUnit ?? "")")
+                                            Text("Condition: \(sneaker.condition)/10")
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+
+                                        Text("Price: \(sneaker.price, specifier: "%.2f") \(sneaker.currency ?? "")")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, 8)
                             }
-                            .tint(.green)
-                        }
-                        .swipeActions(edge: .leading) {
-                            Button {
-                                selectedSneakerForEdit = sneaker
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
+                            .buttonStyle(PlainButtonStyle())
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    deleteSneaker(sneaker)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+
+                                Button {
+                                    moveToCollection(sneaker)
+                                } label: {
+                                    Label("Move to Collection", systemImage: "folder.badge.plus")
+                                }
+                                .tint(.green)
                             }
-                            .tint(.blue)
+                            .swipeActions(edge: .leading) {
+                                Button {
+                                    selectedSneakerForEdit = sneaker
+                                } label: {
+                                    Label("Edit", systemImage: "pencil")
+                                }
+                                .tint(.blue)
+                            }
                         }
                     }
                 }
+                .listStyle(PlainListStyle())
             }
-            .navigationTitle("Wishlist")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Wishlist")
+                        .font(.headline)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingAddWishlist = true }) {
                         Image(systemName: "plus")
                     }
                 }
             }
+
             .sheet(isPresented: $showingAddWishlist) {
                 SneakerAddView(isWishlist: true)
                     .environment(\.managedObjectContext, viewContext)
@@ -96,6 +123,28 @@ struct WishlistView: View {
         }
     }
 
+
+    private func filteredSneakers() -> [Sneaker] {
+        wishlistSneakers.filter { sneaker in
+            if searchText.isEmpty {
+                return true
+            }
+
+            let matchesNameOrBrand =
+                sneaker.name?.localizedCaseInsensitiveContains(searchText) ?? false ||
+                sneaker.brand?.localizedCaseInsensitiveContains(searchText) ?? false
+
+            if let conditionInt = Int(searchText) {
+                let matchesCondition = sneaker.condition == Int16(conditionInt)
+                return matchesNameOrBrand || matchesCondition
+            } else {
+                return matchesNameOrBrand
+            }
+        }
+    }
+
+
+
     private func deleteSneaker(_ sneaker: Sneaker) {
         viewContext.delete(sneaker)
         do {
@@ -105,8 +154,14 @@ struct WishlistView: View {
         }
     }
 
+    private func frontImage(for sneaker: Sneaker) -> Image? {
+        if let data = sneaker.photoFront, let uiImage = UIImage(data: data) {
+            return Image(uiImage: uiImage)
+        }
+        return nil
+    }
+
     private func moveToCollection(_ sneaker: Sneaker) {
-        // Create a new sneaker object with copied properties
         let newSneaker = Sneaker(context: viewContext)
         newSneaker.id = UUID()
         newSneaker.name = sneaker.name
@@ -116,8 +171,15 @@ struct WishlistView: View {
         newSneaker.condition = sneaker.condition
         newSneaker.price = sneaker.price
         newSneaker.currency = sneaker.currency
-    
-        newSneaker.isWishlist = false 
+
+        newSneaker.photoFront = sneaker.photoFront
+        newSneaker.photoBack = sneaker.photoBack
+        newSneaker.photoSole = sneaker.photoSole
+        newSneaker.photoInsole = sneaker.photoInsole
+        newSneaker.photoSide = sneaker.photoSide
+        newSneaker.photoBox = sneaker.photoBox
+
+        newSneaker.isWishlist = false
 
         viewContext.delete(sneaker)
 
